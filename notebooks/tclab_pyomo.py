@@ -398,7 +398,7 @@ class TC_Lab_experiment(Experiment):
                 m.Uc.fix()
             
             # Inverse of the heat capacity coefficients (1/CpH and 1/CpS)
-            m.inv_CpH = Var(initialize=self.theta_initial["inv_CpH"], bounds=(0.1, 1))
+            m.inv_CpH = Var(initialize=self.theta_initial["inv_CpH"], bounds=(0.1, 0.4))
             m.inv_CpH.fix()
             m.inv_CpS = Var(initialize=self.theta_initial["inv_CpS"], bounds=(1, 10))
             m.inv_CpS.fix()
