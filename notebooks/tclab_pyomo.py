@@ -696,12 +696,12 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
         None, None, None, None, None, None, None, None, None, None, None
     )
 
-    if isinstance(model, dict):
-        doe_results = model
-    elif hasattr(model, "results"):
-        doe_results = model.results
-    else:
-        doe_results = None
+    doe_results = model if isinstance(model, dict) else None
+    if doe_results is None:
+        try:
+            doe_results = getattr(model, "results", None)
+        except Exception:
+            doe_results = None
     if (
         not isinstance(doe_results, dict)
         or "solution" not in doe_results
@@ -726,10 +726,10 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
             exp_list = list(tc_exp_data)
         else:
             exp_list = [tc_exp_data]
-        if len(exp_list) > 1 and len(exp_list) != len(experiments):
-            print(
-                "Warning: Number of provided tc_exp_data entries does not match the "
-                "number of optimized experiments. Reusing the last dataset as needed."
+        if len(exp_list) not in (0, 1, len(experiments)):
+            raise ValueError(
+                "Number of provided tc_exp_data entries does not match the number "
+                "of optimized experiments."
             )
 
         mod_results = []
@@ -740,52 +740,45 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
         ax_u = plt.subplot(2, 1, 2)
 
         cmap = plt.get_cmap("tab10")
+        try:
+            exp_blocks = model.model.param_scenario_blocks[0].exp_blocks
+        except Exception as err:
+            raise ValueError(
+                "Multi-experiment plotting requires a DesignOfExperiments object "
+                "with solved model blocks at "
+                "model.model.param_scenario_blocks[0].exp_blocks[i]."
+                "fd_scenario_blocks[0]."
+            ) from err
+        if len(exp_blocks) < len(experiments):
+            raise ValueError(
+                "Model contains fewer experiment blocks than optimize_experiments "
+                "results entries."
+            )
 
         for i, exp_result in enumerate(experiments):
-            if len(exp_list) == 0:
-                exp_data = empty_exp
-            elif len(exp_list) == 1:
-                exp_data = exp_list[0]
-            elif i < len(exp_list):
-                exp_data = exp_list[i]
-            else:
-                exp_data = exp_list[-1]
+            exp_data = empty_exp if len(exp_list) == 0 else exp_list[min(i, len(exp_list) - 1)]
             exp_id = exp_result.get("exp_id", i)
             suffix = f" (exp {exp_id})"
             color = cmap(i % 10)
 
-            design = np.asarray(exp_result.get("design", []), dtype=float)
-            if design.ndim > 1:
-                # Primary design variable is stored first when multiple values exist.
-                design = design[:, 0]
+            try:
+                exp_model = exp_blocks[i].fd_scenario_blocks[0]
+            except Exception as err:
+                raise ValueError(
+                    f"Could not access experiment block {i} at "
+                    "model.model.param_scenario_blocks[0].exp_blocks[i]."
+                    "fd_scenario_blocks[0]."
+                ) from err
 
-            outputs = np.asarray(exp_result.get("outputs", []), dtype=float)
-            ts1_pred = None
-            ts2_pred = None
-            if outputs.ndim == 1:
-                ts1_pred = outputs
-            elif outputs.ndim == 2 and outputs.shape[1] > 0:
-                ts1_pred = outputs[:, 0]
-                if outputs.shape[1] > 1:
-                    ts2_pred = outputs[:, 1]
+            if not hasattr(exp_model, "t"):
+                raise ValueError(
+                    f"Experiment block {i} does not contain a time set `t`."
+                )
 
-            if exp_data.time is not None and len(exp_data.time) == len(design):
-                time = np.asarray(exp_data.time)
-            else:
-                time = np.arange(len(design))
-
-            mod_i = TC_Lab_data(
-                f"Pyomo DoE results exp {exp_id}",
-                time,
-                None,
-                design,
-                exp_data.P1 if hasattr(exp_data, "P1") else None,
-                ts1_pred,
-                None,
-                None,
-                exp_data.P2 if hasattr(exp_data, "P2") else None,
-                ts2_pred,
-                exp_data.Tamb if hasattr(exp_data, "Tamb") else None,
+            mod_i = extract_results(
+                exp_model,
+                name=f"Pyomo DoE results exp {exp_id}",
+                number_of_states=number_of_states,
             )
             mod_results.append(mod_i)
 
@@ -805,6 +798,14 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
                     label="$T_{S,1}$ predicted" + suffix,
                     color=color,
                 )
+            if mod_i.T1 is not None:
+                ax_temp.plot(
+                    mod_i.time,
+                    mod_i.T1,
+                    label="$T_{H,1}$ predicted" + suffix,
+                    color=color,
+                    linestyle=':',
+                )
             if exp_data.T2 is not None and exp_data.time is not None:
                 ax_temp.scatter(
                     exp_data.time,
@@ -821,6 +822,14 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
                     label="$T_{S,2}$ predicted" + suffix,
                     color=color,
                     linestyle='--',
+                )
+            if mod_i.T2 is not None:
+                ax_temp.plot(
+                    mod_i.time,
+                    mod_i.T2,
+                    label="$T_{H,2}$ predicted" + suffix,
+                    color=color,
+                    linestyle='-.',
                 )
 
             if exp_data.u1 is not None and exp_data.time is not None:
@@ -879,6 +888,13 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
         exp = tc_exp_data
     else:
         exp = empty_exp
+
+    if not hasattr(model, "t"):
+        raise ValueError(
+            "Single-experiment plotting expects a solved Pyomo model with time set `t`. "
+            "For multi-experiment plotting, pass a DesignOfExperiments object or "
+            "results from optimize_experiments()."
+        )
 
     mod = extract_results(model, number_of_states=number_of_states)
 
