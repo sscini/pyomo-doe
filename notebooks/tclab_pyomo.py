@@ -1022,14 +1022,18 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
     return mod
 
 
-def results_summary(result):
+def results_summary(result, reparam=False):
     eigenvalues, eigenvectors = np.linalg.eig(result)
 
     min_eig = min(eigenvalues)
 
     print("======Results Summary======")
     print("Four design criteria log10() value:")
-    print("A-optimality:", np.log10(np.trace(result)))
+    print("Pseudo A-optimality:", np.log10(np.trace(result)))
+    try:
+        print("A-optimality:", np.log10(np.trace(np.linalg.inv(result))))
+    except np.linalg.LinAlgError:
+        print("A-optimality: Matrix is singular, cannot compute inverse.")
     print("D-optimality:", np.log10(np.linalg.det(result)))
     print("E-optimality:", np.log10(min_eig))
     print("Modified E-optimality:", np.log10(np.linalg.cond(result)))
@@ -1037,4 +1041,16 @@ def results_summary(result):
 
     print("\neigenvalues:\n", eigenvalues)
 
-    print("\neigenvectors:\n", eigenvectors)
+    # print("\neigenvectors:\n", eigenvectors)
+    if reparam:
+        params = ["beta_1", "beta_2", "beta_3", "beta_4"]
+    else:
+        params = ["Ua", "Ub", "inv_CpH", "inv_CpS"]
+
+    eigvec_df = pd.DataFrame(
+        eigenvectors,
+        index=params,
+        columns=[f"eigvec_{i+1}" for i in range(eigenvectors.shape[1])]
+    )    
+    print("\nEigenvector matrix:\n", eigvec_df.round(4))
+    
