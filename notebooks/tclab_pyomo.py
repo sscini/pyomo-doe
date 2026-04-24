@@ -403,15 +403,25 @@ class TC_Lab_experiment(Experiment):
             m.inv_CpS = Var(initialize=self.theta_initial["inv_CpS"], bounds=(0, 1e3))
             m.inv_CpS.fix()
         else:
-            # REPARAMETRIZATION
-            m.beta_1 = Var(initialize=self.theta_initial["Ua"] * self.theta_initial["inv_CpH"], bounds=(0, 1e6))
-            m.beta_1.fix()
-            m.beta_2 = Var(initialize=self.theta_initial["Ub"] * self.theta_initial["inv_CpH"], bounds=(1e-6, 1e6))
-            m.beta_2.fix()
-            m.beta_3 = Var(initialize=self.theta_initial["Ub"] * self.theta_initial["inv_CpS"], bounds=(0, 1e6))
-            m.beta_3.fix()
-            m.beta_4 = Var(initialize=self.alpha * pyovalue(m.P1) * self.theta_initial["inv_CpH"], bounds=(0, 1e6))
-            m.beta_4.fix()
+            if all(k in self.theta_initial for k in ("beta_1", "beta_2", "beta_3", "beta_4")):
+                m.beta_1 = Var(initialize=self.theta_initial["beta_1"], bounds=(0, 1e6))
+                m.beta_1.fix()
+                m.beta_2 = Var(initialize=self.theta_initial["beta_2"], bounds=(1e-6, 1e6))
+                m.beta_2.fix()
+                m.beta_3 = Var(initialize=self.theta_initial["beta_3"], bounds=(0, 1e6))
+                m.beta_3.fix()
+                m.beta_4 = Var(initialize=self.theta_initial["beta_4"], bounds=(0, 1e6))
+                m.beta_4.fix()
+            else: 
+                # REPARAMETRIZATION
+                m.beta_1 = Var(initialize=self.theta_initial["Ua"] * self.theta_initial["inv_CpH"], bounds=(0, 1e6))
+                m.beta_1.fix()
+                m.beta_2 = Var(initialize=self.theta_initial["Ub"] * self.theta_initial["inv_CpH"], bounds=(1e-6, 1e6))
+                m.beta_2.fix()
+                m.beta_3 = Var(initialize=self.theta_initial["Ub"] * self.theta_initial["inv_CpS"], bounds=(0, 1e6))
+                m.beta_3.fix()
+                m.beta_4 = Var(initialize=self.alpha * pyovalue(m.P1) * self.theta_initial["inv_CpH"], bounds=(0, 1e6))
+                m.beta_4.fix()
 
             if self.number_of_states == 4:
                 m.beta_5 = Var(initialize=self.theta_initial["Uc"] / self.theta_initial["inv_CpH"], bounds=(0, 1e6))
@@ -1028,7 +1038,7 @@ def results_summary(result, reparam=False):
     min_eig = min(eigenvalues)
 
     print("======Results Summary======")
-    print("Four design criteria log10() value:")
+    print("Five design criteria log10() value:")
     print("Pseudo A-optimality:", np.log10(np.trace(result)))
     try:
         print("A-optimality:", np.log10(np.trace(np.linalg.inv(result))))
