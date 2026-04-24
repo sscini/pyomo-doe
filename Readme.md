@@ -52,10 +52,18 @@ In this workshop, we will learn how to develop digital twin models in the open-s
 
 This tutorial assumes the audience is familiar with basic Python programming. (New to Python? Check out [this](https://lectures.scientific-python.org/index.html) and similar online resources.) The tutorial is designed to run in Google Colab. The `tclab_pyomo.py` file contains the Pyomo model for our motivating system as well as utilities to install software on Colab.
 
-Alternatively, pariticipants can run the tutorial locally on their computer. Use the following command to create a new conda environment:
+### For workshop participants / normal users
+
+Alternatively, participants can run the tutorial locally on their computer. Use the following command to create a new conda environment:
 
 ```
 conda create -n summer2026 -c conda-forge -c IDAES-PSE python=3.11 idaes-pse pandas numpy matplotlib scipy ipykernel
+```
+
+Activate the environment:
+
+```
+conda activate summer2026
 ```
 
 Then install the optimization solvers, including `Ipopt` with HSL linear algebra and `k_aug`:
@@ -70,6 +78,34 @@ Next, download the files for this tutorial:
 
 ```
 git clone git@github.com:dowlinglab/pyomo-doe.git
+```
+
+### For workshop maintainers
+
+To update or rebuild the workshop materials locally, create a separate maintainer environment. In addition to the workshop dependencies, the latest Jupyter Book uses the MyST toolchain and requires `nodejs` to be available in the environment.
+
+Use the following commands to create the maintainer environment:
+
+```
+conda create -y -n pyomo-doe-maint -c conda-forge -c IDAES-PSE python=3.11 idaes-pse pandas numpy matplotlib scipy ipykernel nbformat nodejs pip
+conda activate pyomo-doe-maint
+python -m pip install -U jupyter-book
+idaes get-extensions
+```
+
+As of April 24, 2026, the latest PyPI release is `jupyter-book 2.1.4`.
+
+From the repository root, rebuild the workshop site with:
+
+```
+python ./scripts/process_notebooks.py
+jupyter book build --all
+```
+
+To preview the updated site locally, run:
+
+```
+jupyter book start
 ```
 
 ## How do I learn more about Pyomo.DoE?

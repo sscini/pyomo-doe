@@ -1,8 +1,9 @@
 # Run this script from the root directory of this project
 
-mkdir ./_build/
-mkdir ./_build/html/
-mkdir ./_build/html/_images
+set -euo pipefail
+
 python ./scripts/process_notebooks.py
-jb build ../pyomo-doe
-open ./_build/html/index.html
+jupyter book build --all
+
+echo "Build complete."
+echo "Preview locally with: jupyter book start"

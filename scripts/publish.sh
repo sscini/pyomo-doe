@@ -1,9 +1,9 @@
 # Run this script from the root directory of this project
 
-mkdir ./_build/
-mkdir ./_build/html/
-mkdir ./_build/html/_images
+set -euo pipefail
+
 python ./scripts/process_notebooks.py
-jb build ../pyomo-doe
-ghp-import -n -p -f _build/html 
-jb clean ../pyomo-doe/
+jupyter book build --all
+
+echo "Jupyter Book 2 no longer uses the legacy 'jb build' / 'ghp-import' publish flow."
+echo "To configure GitHub Pages deployment, run: jupyter book init --gh-pages"

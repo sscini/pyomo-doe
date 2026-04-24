@@ -1,0 +1,37 @@
+version: 1
+project:
+  title: Pyomo.DoE Workshop and Tutorials
+  authors:
+    - name: Alexander Dowling
+    - name: Dan Laky
+  exclude:
+    - .DS_Store
+    - '**.ipynb_checkpoints'
+    - '**.pytest_cache'
+  github: dowlinglab/pyomo-doe
+  toc:
+    - file: Readme.md
+    - file: tclab.md
+      children:
+        - file: notebooks/tclab_model.ipynb
+        - file: notebooks/numpy_simulation.ipynb
+        - file: notebooks/pyomo_simulation.ipynb
+    - file: notebooks/experiment_abstraction.ipynb
+    - file: regression.md
+      children:
+        - file: notebooks/parmest.ipynb
+        - file: notebooks/parmest_exercise.ipynb
+    - file: mbdoe.md
+      children:
+        - file: notebooks/doe_exploratory_analysis.ipynb
+        - file: notebooks/doe_optimize.ipynb
+        - file: notebooks/doe_exercise.ipynb
+    - file: exercises.md
+      children:
+        - file: exercise_solutions/parmest_exercise.ipynb
+        - file: exercise_solutions/doe_exercise.ipynb
+site:
+  options:
+    logo: PyomoDoE-sm.png
+    folders: true
+  template: book-theme
