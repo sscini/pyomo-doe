@@ -388,9 +388,9 @@ class TC_Lab_experiment(Experiment):
         
         # Heat transfer coefficients
         if not self.reparam:
-            m.Ua = Var(initialize=self.theta_initial["Ua"], bounds=(0, 1e4))
+            m.Ua = Var(initialize=self.theta_initial["Ua"], bounds=(1e-6, 0.1))
             m.Ua.fix()
-            m.Ub = Var(initialize=self.theta_initial["Ub"], bounds=(0, 1e4))
+            m.Ub = Var(initialize=self.theta_initial["Ub"], bounds=(0.01, 0.05))
             m.Ub.fix()
             
             if self.number_of_states == 4:
@@ -398,9 +398,9 @@ class TC_Lab_experiment(Experiment):
                 m.Uc.fix()
             
             # Inverse of the heat capacity coefficients (1/CpH and 1/CpS)
-            m.inv_CpH = Var(initialize=self.theta_initial["inv_CpH"], bounds=(0, 1e6))
+            m.inv_CpH = Var(initialize=self.theta_initial["inv_CpH"], bounds=(0.1, 0.4))
             m.inv_CpH.fix()
-            m.inv_CpS = Var(initialize=self.theta_initial["inv_CpS"], bounds=(0, 1e3))
+            m.inv_CpS = Var(initialize=self.theta_initial["inv_CpS"], bounds=(1, 10))
             m.inv_CpS.fix()
         else:
             if all(k in self.theta_initial for k in ("beta_1", "beta_2", "beta_3", "beta_4")):

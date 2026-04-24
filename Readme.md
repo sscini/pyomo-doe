@@ -110,7 +110,7 @@ jupyter book start
 
 ## How do I learn more about Pyomo.DoE?
 
-The [Pyomo.DoE documentation](https://pyomo.readthedocs.io/en/stable/contributed_packages/doe/doe.html) is a great information and a different set of examples. Also see our tutorial notebook for the [reaction kinetics example](https://colab.research.google.com/github/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/fim_doe_tutorial.ipynb).
+The [Pyomo.DoE documentation](https://pyomo.readthedocs.io/en/stable/contributed_packages/doe/doe.html) is a great information and a different set of examples. You can also go through our reaction kinetics example, which is split into the [experiment abstraction](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_experiment.py) and [execution example](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_example.py).
 
 If you use Pyomo.DoE, please cite our paper:
 
