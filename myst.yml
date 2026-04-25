@@ -41,7 +41,7 @@ project:
         - file: exercise_solutions/parmest_exercise.ipynb
         - file: exercise_solutions/doe_exercise.ipynb
 site:
+  template: themes/pyomo-book-theme
   options:
     logo: PyomoDoE-sm.png
     folders: true
-  template: book-theme

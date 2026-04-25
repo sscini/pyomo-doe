@@ -8,15 +8,25 @@ BOOK_PORT="${BOOK_PORT:-4300}"
 BOOK_SERVER_PORT="${BOOK_SERVER_PORT:-4301}"
 BOOK_URL="http://localhost:${BOOK_PORT}"
 
+cleanup_port() {
+    local port="$1"
+    local pids
+    pids="$(lsof -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null || true)"
+    if [[ -n "${pids}" ]]; then
+        echo "Stopping existing listener(s) on port ${port}: ${pids}"
+        kill ${pids} 2>/dev/null || true
+        sleep 1
+    fi
+}
+
 python ./scripts/process_notebooks.py
-if ! python ./scripts/patch_book_theme.py; then
-    jupyter book build --all
-    python ./scripts/patch_book_theme.py
-fi
 jupyter book build --all
 
 echo "Build complete."
 echo "Starting local preview at ${BOOK_URL}"
+
+cleanup_port "${BOOK_PORT}"
+cleanup_port "${BOOK_SERVER_PORT}"
 
 jupyter book start --port "${BOOK_PORT}" --server-port "${BOOK_SERVER_PORT}" &
 JB_PID=$!
