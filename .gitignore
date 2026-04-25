@@ -12,6 +12,8 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+!themes/pyomo-book-theme/build/
+!themes/pyomo-book-theme/build/index.js
 develop-eggs/
 dist/
 downloads/
