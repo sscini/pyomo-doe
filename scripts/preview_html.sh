@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 
-# Run this script from the root directory of this project
+# Build and serve the static HTML site locally.
+#
+# Run from the repository root:
+#   bash scripts/preview_html.sh local
+#   bash scripts/preview_html.sh pages
+#
+# Modes:
+#   local  Build without BASE_URL and serve at /
+#   pages  Build with BASE_URL=/<repo-name> and serve like GitHub Pages
+#
+# Environment overrides:
+#   HTML_PREVIEW_PORT  HTTP server port (default: 8000)
 
 set -euo pipefail
 
@@ -50,8 +61,13 @@ case "${MODE}" in
         ;;
 esac
 
+echo "Preprocessing notebooks"
 python ./scripts/process_notebooks.py
+
+echo "Refreshing packaged custom theme"
 bash ./scripts/build_theme_dist.sh
+
+echo "Building static HTML"
 myst build --html
 
 if [[ "${MODE}" == "pages" ]]; then

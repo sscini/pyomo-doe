@@ -1,6 +1,6 @@
-# Optimizing Experiments with Pyomo.DoE 
+# Optimizing Experiments with Pyomo.DoE
 
-Welcome to the interaction tutorial workshop for parameter estimation and model-based design of experiments in the Pyomo ecosystem!
+Welcome to the interactive tutorial workshop for parameter estimation and model-based design of experiments in the Pyomo ecosystem!
 
 ![Pyomo workflow](./images/pyomo_workflow_new.png)
 
@@ -11,11 +11,11 @@ These materials were created by [Prof. Alexander Dowling](https://dowlinglab.nd.
 **Model Building and Digital Twin Construction using Pyomo.DoE, a Pythonic Tool for Optimal Experimental Design**
 
 Digital twins rely on high-quality data to achieve predictive capability, yet experiments are often expensive and constrained. Optimal experimental design (OED) provides a principled framework for selecting experiments that maximally reduce model uncertainty, and can be naturally posed as an optimal control problem constrained by dynamic system models and experimental limitations.
-This workshop introduces Pyomo.DoE, an open-source, Python-based, equation-oriented framework for model building and optimal experimental design within the Pyomo modeling ecosystem. Participants will learn how classical information-based design criteria—including D-, A-, E-, and ME-optimality derived from the Fisher Information Matrix—can be embedded in nonlinear dynamic optimization problems and solved using modern numerical optimization tools. The formulation treats experimental inputs (e.g., control trajectories, sampling times, operating conditions) as decision variables in an optimal control problem that explicitly balances information gain and experimental feasibility.
+This workshop introduces Pyomo.DoE, an open-source, Python-based, equation-oriented framework for model building and optimal experimental design within the Pyomo modeling ecosystem. Participants will learn how classical information-based design criteria, including D-, A-, E-, and ME-optimality derived from the Fisher Information Matrix, can be embedded in nonlinear dynamic optimization problems and solved using modern numerical optimization tools. The formulation treats experimental inputs (e.g., control trajectories, sampling times, operating conditions) as decision variables in an optimal control problem that explicitly balances information gain and experimental feasibility.
 
 The workshop will begin with a brief introduction to algebraic modeling and dynamic optimization in Pyomo, followed by a hands-on workflow for parameter estimation, uncertainty quantification, and optimal experiment design. Through interactive examples, participants will construct predictive models, design informative experiments, and explore how different optimality criteria target distinct sources of uncertainty.
 
-This workshop is intended for researchers and practitioners interested in digital twins, system identification, and model-based experiment design. The workshop highlights how modern computational optimization tools enables scalable, rigorous, and automated experimental design for complex dynamic systems.
+This workshop is intended for researchers and practitioners interested in digital twins, system identification, and model-based experiment design. The workshop highlights how modern computational optimization tools enable scalable, rigorous, and automated experimental design for complex dynamic systems.
 
 [*Register Here*](https://acc2026.a2c2.org/registration)
 
@@ -44,7 +44,7 @@ We are scheduled for a [half-day afternoon workshop](https://acc2026.a2c2.org/pr
 ## What will I learn in this workshop?
 
 In this workshop, we will learn how to develop digital twin models in the open-source Pyomo ecosystem. Specifically, we will learn how to use three Pyomo-based toolkits:
-* `pyomo.dae` for modeling and discretization of (partial) differential algebriac equations to facilitate dynamic optimization
+* `pyomo.dae` for modeling and discretization of (partial) differential algebraic equations to facilitate dynamic optimization
 * `ParmEst` for parameter estimation and uncertainty quantification
 * `Pyomo.DoE` for model-based design of experiments
 
@@ -72,7 +72,7 @@ Then install the optimization solvers, including `Ipopt` with HSL linear algebra
 idaes get-extensions
 ```
 
-Note: `k_aug` is not distributed for macOS users with an Intel processor. Instead, you will either need to compile yourself or skip a few sections of the tutorial. `k_aug` is an optional dependency for `Pyomo.DoE`.
+Note: `k_aug` is not distributed for macOS users with an Intel processor. Instead, you will either need to compile it yourself or skip a few sections of the tutorial. `k_aug` is an optional dependency for `Pyomo.DoE`.
 
 Next, download the files for this tutorial:
 
@@ -80,37 +80,11 @@ Next, download the files for this tutorial:
 git clone git@github.com:dowlinglab/pyomo-doe.git
 ```
 
-### For workshop maintainers
-
-To update or rebuild the workshop materials locally, create a separate maintainer environment. In addition to the workshop dependencies, the latest Jupyter Book uses the MyST toolchain and requires `nodejs` to be available in the environment. We recommend pinning to the Node.js 22 LTS release for compatibility with the local Jupyter Book preview server.
-
-Use the following commands to create the maintainer environment:
-
-```
-conda create -y -n pyomo-doe-maint -c conda-forge -c IDAES-PSE python=3.11 idaes-pse pandas numpy matplotlib scipy ipykernel nbformat nodejs=22 pip
-conda activate pyomo-doe-maint
-python -m pip install -U jupyter-book
-idaes get-extensions
-```
-
-As of April 24, 2026, the latest PyPI release is `jupyter-book 2.1.4`.
-
-From the repository root, rebuild the workshop site with:
-
-```
-python ./scripts/process_notebooks.py
-jupyter book build --all
-```
-
-To preview the updated site locally, run:
-
-```
-jupyter book start
-```
+Developer and maintainer setup instructions are documented in [DEVELOPER.md](./DEVELOPER.md).
 
 ## How do I learn more about Pyomo.DoE?
 
-The [Pyomo.DoE documentation](https://pyomo.readthedocs.io/en/stable/contributed_packages/doe/doe.html) is a great information and a different set of examples. You can also go through our reaction kinetics example, which is split into the [experiment abstraction](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_experiment.py) and [execution example](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_example.py).
+The [Pyomo.DoE documentation](https://pyomo.readthedocs.io/en/stable/contributed_packages/doe/doe.html) is a great resource and includes a different set of examples. You can also go through our reaction kinetics example, which is split into the [experiment abstraction](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_experiment.py) and [execution example](https://github.com/Pyomo/pyomo/blob/main/pyomo/contrib/doe/examples/reactor_example.py).
 
 If you use Pyomo.DoE, please cite our paper:
 

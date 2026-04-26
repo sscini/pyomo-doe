@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 
-# Build a distributable MyST book theme from the vendored myst-theme subtree.
+# Build the packaged MyST book theme consumed by this repository.
 #
-# This script:
-# 1. builds the book theme source in vendor/myst-theme/themes/book
-# 2. assembles a local distributable theme in themes/pyomo-book-theme-dist
-# 3. generates the package-lock.json that MyST expects for custom themes
+# Run from the repository root:
+#   bash scripts/build_theme_dist.sh
+#
+# Source of truth:
+#   vendor/myst-theme
+#
+# Generated artifact:
+#   themes/pyomo-book-theme-dist
+#
+# This script intentionally keeps the raw vendored theme source separate from
+# the packaged theme directory used by `myst.yml`.
 
 set -euo pipefail
 
@@ -14,10 +21,14 @@ SOURCE_ROOT="${ROOT_DIR}/vendor/myst-theme"
 TEMPLATE_STUB_DIR="${SOURCE_ROOT}/template"
 BOOK_THEME_SRC_DIR="${SOURCE_ROOT}/themes/book"
 DIST_THEME_DIR="${ROOT_DIR}/themes/pyomo-book-theme-dist"
+
 # Remix v1 attempts to reserve a dev websocket port during config loading,
 # even for production builds. In constrained environments that bind can fail,
 # so we provide a fixed port value to skip the probe entirely.
 REMIX_DEV_SERVER_WS_PORT_VALUE="${REMIX_DEV_SERVER_WS_PORT_VALUE:-8002}"
+
+# Use the maintainer environment's npm when available rather than assuming PATH
+# resolution will remain stable in every subshell.
 NPM_BIN="${NPM_BIN:-$(command -v npm || true)}"
 
 require_file() {
@@ -46,7 +57,7 @@ require_file "${TEMPLATE_STUB_DIR}/package.json"
 require_file "${TEMPLATE_STUB_DIR}/server.js"
 require_command "${NPM_BIN}" "npm"
 
-echo "Installing/updating subtree workspace dependencies"
+echo "Installing/updating vendored theme workspace dependencies"
 (cd "${SOURCE_ROOT}" && "${NPM_BIN}" install)
 
 echo "Building required myst-theme workspace packages"
@@ -61,6 +72,8 @@ require_file "${BOOK_THEME_SRC_DIR}/build"
 rm -rf "${DIST_THEME_DIR}"
 mkdir -p "${DIST_THEME_DIR}"
 
+# Copy the packaged template shell and generated theme assets into the
+# repository-local distributable directory that MyST will consume.
 cp "${TEMPLATE_STUB_DIR}/server.js" "${DIST_THEME_DIR}/server.js"
 cp "${BOOK_THEME_SRC_DIR}/template.yml" "${DIST_THEME_DIR}/template.yml"
 cp -R "${BOOK_THEME_SRC_DIR}/public" "${DIST_THEME_DIR}/public"
@@ -87,10 +100,13 @@ PY
 
 echo "Generating distributable package-lock.json"
 (cd "${DIST_THEME_DIR}" && "${NPM_BIN}" install)
+
+# The lockfile is needed by MyST, but vendoring node_modules would add a large
+# amount of noise to this repository, so remove it after the lockfile is written.
 rm -rf "${DIST_THEME_DIR}/node_modules"
 
 echo "Theme artifact ready at:"
 echo "  ${DIST_THEME_DIR}"
 echo
-echo "This directory can now be referenced from myst.yml with:"
+echo "myst.yml should reference:"
 echo "  site.template: themes/pyomo-book-theme-dist"

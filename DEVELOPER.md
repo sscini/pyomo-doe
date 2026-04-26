@@ -1,0 +1,196 @@
+# Developer Guide
+
+This guide is for contributors and maintainers of the workshop materials. The top-level [Readme.md](./Readme.md) is intentionally kept as a landing page for workshop attendees.
+
+## Purpose
+
+This repository contains:
+
+- the workshop source materials
+- the MyST/Jupyter Book website source
+- the GitHub Pages deployment configuration
+
+The public workshop site is published automatically from `main` by GitHub Actions.
+
+## Maintainer environment
+
+Create the maintainer environment with:
+
+```bash
+conda env create -f environment-maintainer.yml
+conda activate pyomo-doe-maint
+idaes get-extensions
+```
+
+The maintainer environment includes:
+
+- Python 3.11
+- `idaes-pse`
+- notebook-processing dependencies
+- `nodejs`
+- `jupyter-book`
+
+## Site build workflow
+
+Every site build has three stages:
+
+1. preprocess notebooks
+2. package the custom theme from the vendored theme source
+3. build the website
+
+Those stages are encoded in the repo scripts so maintainers do not need to remember the exact command sequence.
+
+## Theme architecture
+
+The custom theme workflow has two layers:
+
+1. Theme source subtree:
+   - [vendor/myst-theme](./vendor/myst-theme)
+2. Generated distributable theme artifact:
+   - [themes/pyomo-book-theme-dist](./themes/pyomo-book-theme-dist)
+
+`myst.yml` points to the packaged artifact, not the raw source subtree.
+
+This split is necessary because MyST expects a packaged template directory containing:
+
+- `template.yml`
+- `server.js`
+- `package.json`
+- `package-lock.json`
+- `public/`
+- `build/`
+
+The raw subtree is appropriate for development, but not for direct consumption by `site.template`.
+
+## Maintainer scripts
+
+### `scripts/build_theme_dist.sh`
+
+```bash
+bash scripts/build_theme_dist.sh
+```
+
+Use this when:
+
+- the vendored `vendor/myst-theme` subtree has changed
+- you want to refresh the packaged theme artifact manually
+
+What it does:
+
+- installs or updates the vendored theme workspace dependencies
+- builds the required workspace packages
+- builds the production book theme
+- assembles a distributable theme in `themes/pyomo-book-theme-dist`
+- generates `package-lock.json` for the packaged theme
+
+### `scripts/build_local.sh`
+
+```bash
+bash scripts/build_local.sh
+```
+
+Use this for the normal interactive local preview workflow.
+
+What it does:
+
+- runs notebook preprocessing
+- rebuilds the packaged theme
+- builds the site with the local preview flow
+- starts the local preview server
+
+Default ports:
+
+- site UI: `http://localhost:4300`
+- content server: `http://localhost:4301`
+
+Environment overrides:
+
+- `BOOK_PORT`
+- `BOOK_SERVER_PORT`
+
+### `scripts/preview_html.sh`
+
+```bash
+bash scripts/preview_html.sh local
+```
+
+or:
+
+```bash
+bash scripts/preview_html.sh pages
+```
+
+Use this for static HTML preview.
+
+Modes:
+
+- `local`
+  - builds the site without `BASE_URL`
+  - serves the static output at `http://localhost:8000/`
+- `pages`
+  - builds the site with `BASE_URL=/<repo-name>`
+  - serves the static output under a repository subpath so it behaves like GitHub Pages
+
+Environment override:
+
+- `HTML_PREVIEW_PORT`
+
+### `scripts/publish.sh`
+
+```bash
+bash scripts/publish.sh
+```
+
+Use this as a local CI-style sanity check before pushing.
+
+What it does:
+
+- preprocesses notebooks
+- rebuilds the packaged theme
+- runs `myst build --html`
+
+It does not deploy anything directly. GitHub Pages deployment happens through the GitHub Actions workflow after you push to `main`.
+
+## Publishing with GitHub Actions
+
+Publishing is configured in:
+
+- [.github/workflows/deploy.yml](./.github/workflows/deploy.yml)
+
+The workflow:
+
+1. checks out the repo
+2. installs Python and Node tooling
+3. preprocesses notebooks
+4. rebuilds the packaged custom theme
+5. runs `myst build --html`
+6. uploads `./_build/html`
+7. deploys the uploaded artifact to GitHub Pages
+
+GitHub Pages settings for this repository should use:
+
+- `Source: GitHub Actions`
+
+## Updating the vendored theme
+
+The theme source is maintained in the separate `dowlinglab/myst-theme` fork and imported here using `git subtree`.
+
+Typical workflow:
+
+1. Make source-level theme changes in the fork.
+2. Test those changes there locally.
+3. Pull the updated source into `vendor/myst-theme`.
+4. Run `bash scripts/build_theme_dist.sh`.
+5. Test the website locally with `bash scripts/build_local.sh` or `bash scripts/preview_html.sh pages`.
+6. Commit both the subtree update and the regenerated packaged theme artifact.
+
+## Files maintainers should know
+
+- [myst.yml](./myst.yml)
+- [environment-maintainer.yml](./environment-maintainer.yml)
+- [scripts/process_notebooks.py](./scripts/process_notebooks.py)
+- [scripts/build_theme_dist.sh](./scripts/build_theme_dist.sh)
+- [scripts/build_local.sh](./scripts/build_local.sh)
+- [scripts/preview_html.sh](./scripts/preview_html.sh)
+- [scripts/publish.sh](./scripts/publish.sh)
+- [.github/workflows/deploy.yml](./.github/workflows/deploy.yml)

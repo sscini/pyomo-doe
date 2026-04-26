@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 
-# Run this script from the root directory of this project
+# Build the workshop site for normal local interactive preview.
+#
+# Run from the repository root:
+#   bash scripts/build_local.sh
+#
+# What this script does:
+# 1. preprocesses notebook content
+# 2. rebuilds the packaged custom theme artifact
+# 3. builds the MyST/Jupyter Book site
+# 4. starts the local preview server
+#
+# Environment overrides:
+#   BOOK_PORT         Browser-facing UI port (default: 4300)
+#   BOOK_SERVER_PORT  Content server port (default: 4301)
 
 set -euo pipefail
 
@@ -19,8 +32,13 @@ cleanup_port() {
     fi
 }
 
+echo "Preprocessing notebooks"
 python ./scripts/process_notebooks.py
+
+echo "Refreshing packaged custom theme"
 bash ./scripts/build_theme_dist.sh
+
+echo "Building local preview site"
 jupyter book build --all
 
 echo "Build complete."
