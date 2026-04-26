@@ -2,6 +2,13 @@
 
 This note is for maintainers. It documents the local Jupyter Book / MyST theme customizations in this repository without adding noise to the main user-facing README.
 
+The main `Readme.md` in this repository should remain a landing page for workshop users. Theme experiments, deployment debugging, and maintainer-only implementation details belong here instead.
+
+Maintainer helpers added during this cleanup:
+
+- `bash scripts/set_theme.sh stock`
+- `bash scripts/set_theme.sh prototype`
+
 ## Current Status
 
 As of April 25, 2026, the vendored custom theme remains in this repository, but the stock MyST theme is currently enabled in `myst.yml`.
@@ -40,6 +47,15 @@ The vendored theme is not currently enabled.
 To restore it later, edit `myst.yml` and restore:
 
 - `site.template: themes/pyomo-book-theme`
+
+At the moment, this vendored theme should be treated as a preserved prototype rather than the recommended long-term customization path.
+
+The `themes/` directory now also contains:
+
+- `themes/README.md`
+- `themes/pyomo-book-theme-source/README.md`
+
+These document the intended future source-derived customization workflow.
 
 ## How The Colab Button Works
 
@@ -127,14 +143,29 @@ Why `./_build/html` is used for GitHub Pages:
 
 If we revisit this later, the preferred long-term improvement is still not to patch compiled bundles by hand. The cleaner future direction would be:
 
+- start from the actual upstream `myst-theme` source repository rather than this build-artifact snapshot
 - make the Colab button a source-level theme action, similar in spirit to the built-in MyST launch button
-- rebuild the vendored theme from source
-- keep this repo-owned theme as the deployment artifact
+- verify that a stock-but-source-derived vendored theme deploys cleanly from this repository
+- then add the smallest possible Colab customization and rebuild the theme assets
+- only after that, vendor the resulting built theme back into this repository if needed
 
 For now, the vendored theme is preserved but disabled. That gives us a clean fallback path:
 
 - use the stock theme while debugging GitHub Pages behavior
 - switch back later by restoring `site.template: themes/pyomo-book-theme` in `myst.yml`
+
+Current recommendation:
+
+- keep the stock theme enabled for the live site
+- avoid further hand-editing of `themes/pyomo-book-theme/`, because it contains compiled build artifacts rather than source files intended for human maintenance
+- treat a future source-derived custom theme as a separate follow-on effort
+
+Concrete next-step plan for that follow-on effort:
+
+1. Start from the upstream `jupyter-book/myst-theme` source repository, not from compiled artifacts.
+2. Reproduce a stock-equivalent repo-hosted theme first.
+3. Confirm GitHub Pages deployment works with that theme and `BASE_URL=/pyomo-doe`.
+4. Only then add the smallest possible Colab header action.
 
 ## Deployment Debugging Notes
 
