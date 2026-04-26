@@ -64,21 +64,21 @@ if "google.colab" in sys.modules:
     except ImportError:
         print("Installing idaes via pip...")
         ### Install newest version of IDAES
-        '''
         v = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-q", "idaes_pse"],
             check=True,
             capture_output=True,
             text=True,
         )
-        '''
         ### Pin to a specific version of IDAES
+        '''
         v = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-qv", "idaes_pse==2.7.0"],
             check=True,
             capture_output=True,
             text=True,
         )
+        '''
         if verbose:
             print(v.stdout)
             print(v.stderr)
@@ -113,7 +113,7 @@ if "google.colab" in sys.modules:
             v = subprocess.run(
                 ["pyomo", "--version"], check=True, capture_output=True, text=True
             )
-            if "pyomo-doe-fixes" in v.stdout:
+            if "6.10.1.a0" in v.stdout: # This is brittle. A better way is to check the git source for the Pyomo install.
                 reinstall_pyomo = False
                 print("Correct version of Pyomo.DoE is installed.")
             else:
@@ -124,9 +124,7 @@ if "google.colab" in sys.modules:
         return reinstall_pyomo
 
     # Install updated version of Pyomo
-    # No longer needed because improvements to Pyomo.DoE have been 
-    # merged into the next release of Pyomo
-    '''
+    
     if _check_pyomo_installed_old():
         print("Installing updated version of Pyomo.DoE...")
         print("  (this takes up to 5 minutes)")
@@ -137,7 +135,7 @@ if "google.colab" in sys.modules:
                 "pip",
                 "install",
                 "-q",
-                "git+https://github.com/adowling2/pyomo.git@pyomo-doe-fixes",
+                "git+https://github.com/dowlinglab/pyomo.git@pyomo-doe-workshop-2026",
             ],
             check=True,
             capture_output=True,
@@ -147,7 +145,7 @@ if "google.colab" in sys.modules:
             print(v.stdout)
             print(v.stderr)
         _check_pyomo_installed()
-    '''
+    
 
     import idaes
 

@@ -57,7 +57,7 @@ This tutorial assumes the audience is familiar with basic Python programming. (N
 Alternatively, participants can run the tutorial locally on their computer. Use the following command to create a new conda environment:
 
 ```
-conda create -n summer2026 -c conda-forge -c IDAES-PSE python=3.11 idaes-pse pandas numpy matplotlib scipy ipykernel
+conda create -n summer2026 -c conda-forge -c IDAES-PSE python=3.11 idaes-pse pandas numpy matplotlib scipy ipykernel pip
 ```
 
 Activate the environment:
@@ -73,6 +73,14 @@ idaes get-extensions
 ```
 
 Note: `k_aug` is not distributed for macOS users with an Intel processor. Instead, you will either need to compile it yourself or skip a few sections of the tutorial. `k_aug` is an optional dependency for `Pyomo.DoE`.
+
+Finally, we need reinstall Pyomo with a specific version with new Pyomo.DoE features:
+
+```
+python -m pip install --no-deps --force-reinstall "pyomo @ git+https://github.com/dowlinglab/pyomo.git@pyomo-doe-workshop-2026"
+```
+
+These features are currently under review and should be included in the next Pyomo release. Once this happens, we will update these workshop install instructions to use the newest released version of Pyomo.
 
 Next, download the files for this tutorial:
 
