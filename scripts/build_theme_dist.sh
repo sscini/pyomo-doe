@@ -87,6 +87,7 @@ PY
 
 echo "Generating distributable package-lock.json"
 (cd "${DIST_THEME_DIR}" && "${NPM_BIN}" install)
+rm -rf "${DIST_THEME_DIR}/node_modules"
 
 echo "Theme artifact ready at:"
 echo "  ${DIST_THEME_DIR}"

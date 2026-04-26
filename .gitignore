@@ -16,6 +16,7 @@ build/
 !themes/pyomo-book-theme/build/index.js
 !themes/pyomo-book-theme-dist/build/
 !themes/pyomo-book-theme-dist/build/**
+themes/pyomo-book-theme-dist/node_modules/
 develop-eggs/
 dist/
 downloads/

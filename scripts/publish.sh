@@ -3,6 +3,7 @@
 set -euo pipefail
 
 python ./scripts/process_notebooks.py
+bash ./scripts/build_theme_dist.sh
 myst build --html
 
 echo "Build complete."

@@ -20,6 +20,7 @@ cleanup_port() {
 }
 
 python ./scripts/process_notebooks.py
+bash ./scripts/build_theme_dist.sh
 jupyter book build --all
 
 echo "Build complete."

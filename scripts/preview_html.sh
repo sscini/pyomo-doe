@@ -51,6 +51,7 @@ case "${MODE}" in
 esac
 
 python ./scripts/process_notebooks.py
+bash ./scripts/build_theme_dist.sh
 myst build --html
 
 if [[ "${MODE}" == "pages" ]]; then

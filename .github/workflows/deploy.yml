@@ -44,6 +44,8 @@ jobs:
         run: npm install -g mystmd
       - name: Process notebooks
         run: python ./scripts/process_notebooks.py
+      - name: Build packaged custom theme
+        run: bash ./scripts/build_theme_dist.sh
       - name: Build HTML assets
         run: myst build --html
       - name: Upload artifact
