@@ -696,7 +696,7 @@ def extract_results(model, name="Pyomo results", number_of_states=2):
     return TC_Lab_data(name, time, Th1, U1, P1, Ts1, Th2, U2, P2, Ts2, Tamb)
 
 
-def extract_plot_results(tc_exp_data, model, number_of_states=2):
+def extract_plot_results(tc_exp_data, model, number_of_states=2, reparam=False):
     """Extract and plot Pyomo or DoE optimize_experiments results.
 
     Arguments:
@@ -1019,12 +1019,21 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2):
     plt.show()
 
     print("Model parameters:")
-    print("Ua =", round(pyovalue(model.Ua), 4), "Watts/degC")
-    print("Ub =", round(pyovalue(model.Ub), 4), "Watts/degC")
-    if number_of_states == 4:
-        print("Uc =", round(pyovalue(model.Uc), 4), "Watts/degC")
-    print("CpH =", round(1 / pyovalue(model.inv_CpH), 4), "Joules/degC")
-    print("CpS =", round(1 / pyovalue(model.inv_CpS), 4), "Joules/degC")
+
+    if reparam:
+        print("Beta_1 =", round(pyovalue(model.beta_1), 4), "Watts/degC")
+        print("Beta_2 =", round(pyovalue(model.beta_2), 4), "Watts/degC")
+        print("Beta_3 =", round(pyovalue(model.beta_3), 4), "Watts/degC")
+        print("Beta_4 =", round(pyovalue(model.beta_4), 4), "Joules/degC")
+        if number_of_states == 4:
+            print("Beta_5 =", round(pyovalue(model.beta_5), 4), "Watts/degC")
+    else:
+        print("Ua =", round(pyovalue(model.Ua), 4), "Watts/degC")
+        print("Ub =", round(pyovalue(model.Ub), 4), "Watts/degC")
+        if number_of_states == 4:
+            print("Uc =", round(pyovalue(model.Uc), 4), "Watts/degC")
+        print("CpH =", round(1 / pyovalue(model.inv_CpH), 4), "Joules/degC")
+        print("CpS =", round(1 / pyovalue(model.inv_CpS), 4), "Joules/degC")
 
     if hasattr(model, 'u1_period'):
         print("u1_period =", round(pyovalue(model.u1_period), 2), "minutes")
@@ -1068,3 +1077,86 @@ def results_summary(result, reparam=False):
     )    
     print("\nEigenvector matrix:\n", eigvec_df.round(4))
     
+
+def extract_multistart_sampling(
+    results_df,
+    results_df_lhs,
+    results_df_sobol,
+    x_col="Ua",
+    y_col="inv_CpS",
+    figsize=(18, 5),
+    alpha=0.75,
+    show=True,
+):
+    """
+    Plot starting theta values for different multistart sampling methods.
+
+    Parameters
+    ----------
+    results_df : pandas.DataFrame
+        Results from random uniform multistart sampling.
+    results_df_lhs : pandas.DataFrame
+        Results from Latin hypercube multistart sampling.
+    results_df_sobol : pandas.DataFrame
+        Results from Sobol multistart sampling.
+    x_col : str, optional
+        Column name to plot on the x-axis. Default is "Ua".
+    y_col : str, optional
+        Column name to plot on the y-axis. Default is "inv_CpS".
+    figsize : tuple, optional
+        Figure size. Default is (18, 5).
+    alpha : float, optional
+        Scatter point transparency. Default is 0.75.
+    show : bool, optional
+        Whether to call plt.show(). Default is True.
+
+    Returns
+    -------
+    fig, axs
+        Matplotlib figure and axes objects.
+    """
+
+    sampling_results = [
+        {
+            "df": results_df,
+            "label": "Random Uniform",
+            "title": "Random Uniform Sampling",
+            "color": "blue",
+        },
+        {
+            "df": results_df_lhs,
+            "label": "Latin Hypercube",
+            "title": "Latin Hypercube Sampling",
+            "color": "green",
+        },
+        {
+            "df": results_df_sobol,
+            "label": "Sobol",
+            "title": "Sobol Sampling",
+            "color": "orange",
+        },
+    ]
+
+    fig, axs = plt.subplots(1, 3, figsize=figsize)
+
+    for ax, method in zip(axs, sampling_results):
+        theta_df = method["df"][[x_col, y_col]].copy()
+
+        ax.scatter(
+            theta_df[x_col],
+            theta_df[y_col],
+            label=method["label"],
+            color=method["color"],
+            alpha=alpha,
+        )
+
+        ax.set_xlabel(x_col)
+        ax.set_ylabel(y_col)
+        ax.set_title(method["title"])
+
+    plt.tight_layout()
+
+    if show:
+        plt.show()
+
+    return fig, axs
