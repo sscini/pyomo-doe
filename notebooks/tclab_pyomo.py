@@ -1021,19 +1021,19 @@ def extract_plot_results(tc_exp_data, model, number_of_states=2, reparam=False):
     print("Model parameters:")
 
     if reparam:
-        print("Beta_1 =", round(pyovalue(model.beta_1), 4), "Watts/degC")
-        print("Beta_2 =", round(pyovalue(model.beta_2), 4), "Watts/degC")
-        print("Beta_3 =", round(pyovalue(model.beta_3), 4), "Watts/degC")
-        print("Beta_4 =", round(pyovalue(model.beta_4), 4), "Joules/degC")
+        print("Beta_1 =", round(pyovalue(model.beta_1), 4), "Watts/Joules")
+        print("Beta_2 =", round(pyovalue(model.beta_2), 4), "Watts/Joules")
+        print("Beta_3 =", round(pyovalue(model.beta_3), 4), "Watts/Joules")
+        print("Beta_4 =", round(pyovalue(model.beta_4), 4), "°C.Watts/(Joules.%)")
         if number_of_states == 4:
-            print("Beta_5 =", round(pyovalue(model.beta_5), 4), "Watts/degC")
+            print("Beta_5 =", round(pyovalue(model.beta_5), 4), "Watts/Joules")
     else:
-        print("Ua =", round(pyovalue(model.Ua), 4), "Watts/degC")
-        print("Ub =", round(pyovalue(model.Ub), 4), "Watts/degC")
+        print("Ua =", round(pyovalue(model.Ua), 4), "Watts/°C")
+        print("Ub =", round(pyovalue(model.Ub), 4), "Watts/°C")
         if number_of_states == 4:
-            print("Uc =", round(pyovalue(model.Uc), 4), "Watts/degC")
-        print("CpH =", round(1 / pyovalue(model.inv_CpH), 4), "Joules/degC")
-        print("CpS =", round(1 / pyovalue(model.inv_CpS), 4), "Joules/degC")
+            print("Uc =", round(pyovalue(model.Uc), 4), "Watts/°C")
+        print("CpH =", round(1 / pyovalue(model.inv_CpH), 4), "Joules/°C")
+        print("CpS =", round(1 / pyovalue(model.inv_CpS), 4), "Joules/°C")
 
     if hasattr(model, 'u1_period'):
         print("u1_period =", round(pyovalue(model.u1_period), 2), "minutes")
@@ -1160,3 +1160,109 @@ def extract_multistart_sampling(
         plt.show()
 
     return fig, axs
+
+
+### ---------- Part 6: Extract the original parameters and covariance ---------- ###
+
+def recover_original_parameters(reform_params, alpha, P1):
+    """
+    Function to recover the original parameter
+    values from the model after estimation.
+
+    Arguments
+    ---------
+    reform_params: dict,
+        Keys are reformulated parameter names and values are
+        the parameter estimates
+    alpha: float,
+        alpha value for beta 4
+    P1: float,
+        P1 value for beta 4
+
+    Returns
+    -------
+    orig_theta_vals: dict,
+        keys are original parameter names and values are
+        the parameter estimates
+    """
+
+    # Recover the values
+    CpH = alpha * P1 / reform_params["beta_4"]
+    Ua = CpH * reform_params["beta_1"]
+    Ub = CpH * reform_params["beta_2"]
+    CpS = Ub / reform_params["beta_3"]
+
+    # Store them in a dictionary
+    orig_theta_vals = {"Ua": Ua, "Ub": Ub, "inv_CpH": 1/CpH, "inv_CpS": 1/CpS}
+
+    return orig_theta_vals
+
+
+def recover_original_covariance(reform_params, cov_reform, alpha, P1):
+    """
+        Computes the covariance matrix of the original parameters
+
+        Parameters
+        ----------
+        reform_params: dict,
+            Keys are reformulated parameter names and values are
+            the parameter estimates
+        cov_reform: Pandas.DataFrame,
+            Covariance matrix of the reformulated parameters
+        alpha: float,
+            alpha value
+        P1: float,
+            P1 value
+
+        Returns
+        -------
+        cov_orig: Pandas.DataFrame,
+            covariance matrix of the original parameters
+    """
+
+    # derivatives of Ua with respect to the reformulated parameters
+    dUa_dbeta_1 = alpha * P1 / reform_params['beta_4']
+    dUa_dbeta_2 = 0
+    dUa_dbeta_3 = 0
+    dUa_dbeta_4 = - alpha * P1 * reform_params['beta_1'] / (reform_params['beta_4'] ** 2)
+    dUa_dbeta = [dUa_dbeta_1, dUa_dbeta_2, dUa_dbeta_3, dUa_dbeta_4]
+
+    # derivatives of Ub with respect to the reformulated parameters
+    dUb_dbeta_1 = 0
+    dUb_dbeta_2 = alpha * P1 / reform_params['beta_4']
+    dUb_dbeta_3 = 0
+    dUb_dbeta_4 = - alpha * P1 * reform_params['beta_2'] / (reform_params['beta_4'] ** 2)
+    dUb_dbeta = [dUb_dbeta_1, dUb_dbeta_2, dUb_dbeta_3, dUb_dbeta_4]
+
+    # derivatives of inv_CpH with respect to the reformulated parameters
+    dinv_CpH_dbeta_1 = 0
+    dinv_CpH_dbeta_2 = 0
+    dinv_CpH_dbeta_3 = 0
+    dinv_CpH_dbeta_4 = 1 / (alpha * P1)
+    dinv_CpH_dbeta = [dinv_CpH_dbeta_1, dinv_CpH_dbeta_2, dinv_CpH_dbeta_3, dinv_CpH_dbeta_4]
+
+    # derivatives of inv_CpS with respect to the reformulated parameters
+    dinv_CpS_dbeta_1 = 0
+    dinv_CpS_dbeta_2 = (- reform_params['beta_3'] * reform_params['beta_4'] /
+                        (alpha * P1 * (reform_params['beta_2'] ** 2)))
+    dinv_CpS_dbeta_3 = reform_params['beta_4'] / (alpha * P1 * reform_params['beta_2'])
+    dinv_CpS_dbeta_4 = reform_params['beta_3'] / (alpha * P1 * reform_params['beta_2'])
+    dinv_CpS_dbeta = [dinv_CpS_dbeta_1, dinv_CpS_dbeta_2, dinv_CpS_dbeta_3, dinv_CpS_dbeta_4]
+
+    dtheta_dbeta = np.zeros((4, 4))
+    dtheta_dbeta[0, :] = dUa_dbeta
+    dtheta_dbeta[1, :] = dUb_dbeta
+    dtheta_dbeta[2, :] = dinv_CpH_dbeta
+    dtheta_dbeta[3, :] = dinv_CpS_dbeta
+
+    # compute the covariance matrix of the original parameters
+    cov_theta = dtheta_dbeta @ cov_reform @ dtheta_dbeta.T
+    cov_orig = pd.DataFrame(
+        cov_theta.to_numpy(),
+        index=["Ua", "Ub", "Inv_CpH", "inv_CpS"],
+        columns=["Ua", "Ub", "Inv_CpH", "inv_CpS"], )
+
+    return cov_orig
+
+
+
