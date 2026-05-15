@@ -161,6 +161,7 @@ if "google.colab" in sys.modules:
 # import idaes
 # from idaes.core.util import DiagnosticsToolbox
 
+from pyomo.contrib.parmest.graphics import profile_likelihood_plot
 from pyomo.contrib.parmest.experiment import Experiment
 from pyomo.contrib.doe import DesignOfExperiments
 
@@ -1077,7 +1078,7 @@ def results_summary(result, reparam=False):
     )    
     print("\nEigenvector matrix:\n", eigvec_df.round(4))
     
-
+### ------ Part 5b: Extract and visualize multistart sampling and profile likelihood results ----- ###
 def extract_multistart_sampling(
     results_df,
     results_df_lhs,
@@ -1161,8 +1162,130 @@ def extract_multistart_sampling(
 
     return fig, axs
 
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+
+
+def plot_profile_likelihood(
+    profile_results,
+    alpha=0.95,
+    xlims=None,
+    ylims=None,
+):
+    """
+    Plot profile likelihood curves with optional x/y limits for each parameter.
+
+    Parameters
+    ----------
+    profile_results : object
+        Profile likelihood results from parmest.
+    
+    alpha : float, optional
+        Confidence level used for the profile likelihood plot.
+        Default is 0.95.
+    
+    xlims : list of tuple or None, optional
+        x-axis limits for each parameter subplot.
+        Example:
+            xlims = [
+                (0, 10),
+                (0, 5),
+                None,
+                (1, 3),
+            ]
+        If None, all plots use default full x-axis range.
+    
+    ylims : list of tuple or None, optional
+        y-axis limits for each parameter subplot.
+        Example:
+            ylims = [
+                (0, 20),
+                (0, 20),
+                (0, 20),
+                (0, 20),
+            ]
+        If None, all plots use default full y-axis range.
+
+    Returns
+    -------
+    fig, axes
+        The matplotlib figure and axes objects.
+    """
+
+    threshold = stats.chi2.ppf(float(alpha), df=1)
+
+    print(
+        f"Chi-squared threshold for {alpha:.0%} confidence interval: "
+        f"{threshold:.4f}"
+    )
+
+    fig, axes = profile_likelihood_plot(
+        profile_results,
+        alpha=alpha,
+        show=False,
+        ylabel=r"$2\left(\Phi_{\mathrm{PL},i}(\theta_i)-\Phi(\hat{\theta})\right)$",
+    )
+
+    # Flatten axes in case axes is a 2D array from plt.subplots(..., squeeze=False)
+    axes_flat = axes.flatten()
+
+    if xlims is not None:
+        for ax, xlim in zip(axes_flat, xlims):
+            if xlim is not None:
+                ax.set_xlim(*xlim)
+
+    if ylims is not None:
+        for ax, ylim in zip(axes_flat, ylims):
+            if ylim is not None:
+                ax.set_ylim(*ylim)
+
+    plt.tight_layout()
+    plt.show()
+
+    return fig, axes
 
 ### ---------- Part 6: Extract the original parameters and covariance ---------- ###
+
+def reformulate_parameters(orig_params, alpha, P1):
+    """
+    Function to recover the reformulated beta parameter
+    values from the original model parameters.
+
+    Arguments
+    ---------
+    orig_params: dict
+        Keys are original parameter names and values are
+        the parameter estimates. Expected keys are:
+        "Ua", "Ub", "inv_CpH", and "inv_CpS"
+
+    alpha: float
+        Alpha value for beta_4
+
+    P1: float
+        P1 value for beta_4
+
+    Returns
+    -------
+    reform_theta_vals: dict
+        Keys are reformulated beta parameter names and values are
+        the parameter estimates. Returned keys are:
+        "beta_1", "beta_2", "beta_3", and "beta_4"
+    """
+
+    Ua = orig_params["Ua"]
+    Ub = orig_params["Ub"]
+    inv_CpH = orig_params["inv_CpH"]
+    inv_CpS = orig_params["inv_CpS"]
+
+    reform_theta_vals = {
+        "beta_1": Ua * inv_CpH,
+        "beta_2": Ub * inv_CpH,
+        "beta_3": Ub * inv_CpS,
+        "beta_4": alpha * P1 * inv_CpH,
+    }
+
+    return reform_theta_vals
+
 
 def recover_original_parameters(reform_params, alpha, P1):
     """
