@@ -1410,3 +1410,28 @@ def recover_original_covariance(reform_params, cov_reform, alpha, P1):
         columns=["Ua", "Ub", "Inv_CpH", "inv_CpS"], )
 
     return cov_orig
+
+
+def extract_trace_covariance(cov, method):
+    """Computes the trace of the covariance matrix
+
+    Parameters
+    ----------
+    cov: Pandas.DataFrame,
+        Covariance matrix of the parameters
+    method: str,
+        The method used to compute the covariance matrix
+    """
+
+    # check if the covariance matrix is positive semi-definite
+    eigen_values = np.linalg.eigvalsh(cov)
+    if any(eig_val < -1e-10 for eig_val in eigen_values):
+        print(f"\nWARNING: The covariance matrix from {method} is "
+              f"not positive semi-definite.\n", cov)
+        print(f"The trace of the covariance matrix from the {method} "
+              f"method is:", format(np.trace(cov), ".3e"))
+    else:
+        print(f"\nThe covariance matrix from the {method} method is:\n",
+              cov)
+        print(f"The trace of the covariance matrix from the {method} "
+              f"method is:", format(np.trace(cov), ".3e"))
